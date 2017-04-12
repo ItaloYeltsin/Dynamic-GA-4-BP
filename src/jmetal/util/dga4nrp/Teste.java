@@ -4,7 +4,7 @@ public class Teste {
 	public static void main(String [] args) {
 		InstanceReader ir = new InstanceReader("kate.csv");
 		Instance icc = ir.load();
-		InstanceWriter iw = new InstanceWriter(ir.getPath().replace(".csv", "-copy.csv"));
-		iw.write(icc);
+		InstanceMutator im = new InstanceMutator(icc);
+		im.mutate(0.3, 10, ir.getPath());
 	}
 }

@@ -9,33 +9,40 @@ import java.util.Random;
 public class InstanceMutator {
 	private Instance seed;
 	private Random random;
+	
+	private final int BUG_SEVERITY = 1;
+	private final double [] BUG_SEVERITY_VALUES = {0.2, 0.4, 0.6, 0.8, 1.0};
+	private final int BUG_VOTES = 2;
+	private final int BUG_PRIORITY = 3;
+	private final double [] BUG_PRIORITY_VALUES = {0.1, 0.25, 0.4, 0.55, 0.70, 0.85, 1.0};
+	private final int NUMBER_OF_ATTRIBUTS = 3;
+	private final int VARIATION_SIZE = 50;
 	public InstanceMutator(Instance seed) {
 		this.seed = seed;
 		random = new Random();
 	}
 
-	public Instance[] mutate(double rate, int nOfInstances) {
+	public void mutate(double rate, int nOfInstances, String path) {
 		if(!(rate >= 0 && rate <= 1)) {
 			throw new IllegalArgumentException("rate must be greater than 0 and smaller than 1.");
 		}
 		
 		ArrayList<Bug> bugs = seed.getBugs();
-		Map prec = seed.getPrecedences();
+		HashMap prec = seed.getPrecedences();
 		ArrayList<Bug> added = (ArrayList<Bug>) bugs.clone();
 		ArrayList<Bug> removed = new ArrayList<Bug>();
-		boolean [] isIn = new boolean[bugs.size()];
 		
-		Instance [] mutants = new Instance[nOfInstances];
-		
-		for (int i = 0; i < mutants.length; i++) {
-			
+		for (int i = 0; i < nOfInstances; i++) {
+			HashMap hm = copyMap(prec);
+			execDimenChange(added, removed, hm, (int)(rate*seed.getBugs().size()/2));
+			execNonDimensionalChange(added, removed, (int)(rate*seed.getBugs().size()/2));
+			new InstanceWriter(path.replace(".csv", "-"+i+".csv")).write(new Instance(added, hm));
 		}
-		
-		return mutants;
 		
 	}
 	
-	private void execDimenChange(ArrayList<Bug> added, ArrayList<Bug> removed, int size){
+	private void execDimenChange(ArrayList<Bug> added, ArrayList<Bug> removed, HashMap hm, int size){
+		
 		if(removed.size() == 0) {
 			Collections.shuffle(added);
 			for (int i = 0; i < size; i++) {
@@ -54,6 +61,7 @@ public class InstanceMutator {
 			}
 		}
 		else {
+			
 			int nOfInsertions;
 			int nOfWithDrawals;
 			
@@ -72,6 +80,50 @@ public class InstanceMutator {
 			for (int i = 0; i < nOfWithDrawals; i++) {
 				removed.add(added.get(i));
 				added.remove(i);
+			}		
+			
+		}
+		
+		for (Object o : hm.keySet()) {
+			Bug b = (Bug)o;
+			boolean isIn = false;
+			for (Bug bug : added) {
+				if(bug.id == b.id)
+					isIn = true;
+			}
+			if(!isIn) {
+				hm.remove(b);
+			}
+		}
+		
+	}
+	
+	private HashMap copyMap(HashMap hm){
+		HashMap copy = new HashMap();
+		for (Object o : hm.keySet()) {
+			copy.put(o, hm.get(o));
+		}
+		return copy;
+	}
+	
+	private void execNonDimensionalChange(ArrayList<Bug> added, ArrayList<Bug> removed, int size) {
+		
+		Collections.shuffle(added);
+		int attr = random.nextInt(NUMBER_OF_ATTRIBUTS);
+		
+		for (int i = 0; i < size; i++) {
+			Bug bug = added.get(i);
+			
+			if (attr == BUG_PRIORITY) {
+				int index = random.nextInt(BUG_PRIORITY_VALUES.length);
+				bug.setPriority(BUG_PRIORITY_VALUES[index]);
+			} else if (attr == BUG_SEVERITY) {
+				int index = random.nextInt(BUG_SEVERITY_VALUES.length);
+				bug.setSerity(BUG_SEVERITY_VALUES[index]);
+			} else if (attr == BUG_VOTES) {
+				bug.setVotes(bug.getVotes()+ random.nextInt(VARIATION_SIZE)+1);
+			} else {
+				
 			}
 		}
 	}
