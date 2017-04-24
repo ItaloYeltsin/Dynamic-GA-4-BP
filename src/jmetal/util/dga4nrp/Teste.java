@@ -6,5 +6,6 @@ public class Teste {
 		Instance icc = ir.load();
 		InstanceMutator im = new InstanceMutator(icc);
 		im.mutate(0.3, 10, ir.getPath());
+		
 	}
 }

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import jmetal.core.Problem;
 import jmetal.core.Solution;
 import jmetal.core.Variable;
+import jmetal.encodings.solutionType.BinaryRealSolutionType;
+import jmetal.encodings.solutionType.RankPermutationSolutionType;
 import jmetal.util.JMException;
 import jmetal.util.dga4nrp.Bug;
 import jmetal.util.dga4nrp.Instance;
@@ -22,6 +24,21 @@ public class DynBugPrioritization extends Problem {
 		bugs = instance.getBugs();
 		precedencies = instance.getPrecedences();
 		this.rankSize = rankSize;
+		
+		numberOfVariables_   = rankSize;
+	    numberOfObjectives_  = 1;
+	    problemName_         = "Bug Prioritization";
+	        
+	    lowerLimit_ = new double[numberOfVariables_];
+	    upperLimit_ = new double[numberOfVariables_];        
+	    
+	    for (int i = 0; i < lowerLimit_.length; i++) {
+			lowerLimit_[i] = 0;
+			upperLimit_[i] = bugs.size()-1;
+		}
+	    
+	    solutionType_ = new RankPermutationSolutionType(this, rankSize);
+		
 	}
 	
 	@Override
@@ -62,7 +79,7 @@ public class DynBugPrioritization extends Problem {
 					for (int j = 0; j < vars.length; j++) {
 						Bug bug2 = bugs.get((int)vars[j].getValue());
 						if(bug2.getId() == id) {
-							if(i < j) { // Bug i has to be in a position greater than Bug j
+							if(i < j) { // Bug i has to be in a position greater than the one which Bug j is in
 								nOfBrokenPrecs++;
 							}
 							precFound = true;
@@ -79,5 +96,10 @@ public class DynBugPrioritization extends Problem {
 		}
 		
 		return nOfBrokenPrecs;
+	}
+	
+	public void setNewInstance(Instance instance) {
+		bugs = instance.getBugs();
+		precedencies = instance.getPrecedences();
 	}
 }
