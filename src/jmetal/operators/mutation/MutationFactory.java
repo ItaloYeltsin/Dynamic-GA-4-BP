@@ -47,6 +47,8 @@ public class MutationFactory {
       return new NonUniformMutation(parameters);
     else if (name.equalsIgnoreCase("SwapMutation"))
       return new SwapMutation(parameters);
+    else if(name.equalsIgnoreCase("RankSwapMutation"))
+    		return new RankSwapMutation(parameters);
     else
     {
       Configuration.logger_.severe("Operator '" + name + "' not found ");

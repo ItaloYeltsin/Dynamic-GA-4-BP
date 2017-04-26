@@ -20,7 +20,7 @@ public class DynBugPrioritization extends Problem {
 	
 	private final int ALPHA = 1, BETA = 1, GAMMA = 1; 
 	
-	DynBugPrioritization(Instance instance, int rankSize) {
+	public DynBugPrioritization(Instance instance, int rankSize) {
 		bugs = instance.getBugs();
 		precedencies = instance.getPrecedences();
 		this.rankSize = rankSize;
@@ -53,14 +53,14 @@ public class DynBugPrioritization extends Problem {
 			int pos = i+1;
 			Bug bug = bugs.get((int)vars[i].getValue());
 			
-			relevance += bug.getVotes()*(pos);
+			relevance += bug.getVotes();
 			importance += bug.getPriority()*(rankSize - pos+1); 
 			severity += bug.getSerity()*pos;
 		}
 		
 		double fitness = ALPHA*relevance + BETA*importance - GAMMA*severity;
 		
-		solution.setObjective(0, fitness/evaluatePrecedences(solution));
+		solution.setObjective(0, -fitness/(evaluatePrecedences(solution)+1));
 		
 		
 	}

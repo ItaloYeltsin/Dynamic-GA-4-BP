@@ -87,7 +87,7 @@ public class OrderOneCrossover extends Crossover {
 
       if (PseudoRandom.randDouble() < probability) {  
     	  Variable [] vars = offSpring[0].getDecisionVariables();
-    	  int interval1 = PseudoRandom.randInt(0, vars.length-2);
+    	  int interval1 = PseudoRandom.randInt(0, vars.length-1);
     	  int interval2 = PseudoRandom.randInt(interval1, vars.length-1);
     	  
     	  ArrayList<Double> swathe = new ArrayList<Double>();
@@ -122,7 +122,7 @@ public class OrderOneCrossover extends Crossover {
   /**
    * Executes the operation
    * @param object An object containing an array of two solutions
-   * @return An object containing an array with the offSprings
+   * @return An object containing one offSpring
    * @throws JMException
    */
   public Object execute(Object object) throws JMException {

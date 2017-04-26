@@ -28,8 +28,11 @@ import jmetal.core.SolutionSet;
 import jmetal.operators.crossover.CrossoverFactory;
 import jmetal.operators.mutation.MutationFactory;
 import jmetal.operators.selection.SelectionFactory;
+import jmetal.problems.DynBugPrioritization;
 import jmetal.problems.singleObjective.OneMax;
 import jmetal.util.JMException;
+import jmetal.util.dga4nrp.Instance;
+import jmetal.util.dga4nrp.InstanceReader;
 
 import java.util.HashMap;
 
@@ -41,6 +44,8 @@ import java.util.HashMap;
  */
 public class GA_main {
 
+	private final static long EXEC_TIME = 15000; //ms
+	
   public static void main(String [] args) throws JMException, ClassNotFoundException {
     Problem   problem   ;         // The problem to solve
     Algorithm algorithm ;         // The algorithm to use
@@ -51,21 +56,21 @@ public class GA_main {
     //int bits ; // Length of bit string in the OneMax problem
     HashMap  parameters ; // Operator parameters
 
-    int bits = 512 ;
-    problem = new OneMax("Binary", bits);
+    InstanceReader ir = new InstanceReader("kate.csv");
+	Instance icc = ir.load();
+    problem = new DynBugPrioritization(icc, 20);
+    
  
     //problem = new Sphere("Real", 10) ;
     //problem = new Easom("Real") ;
     //problem = new Griewank("Real", 10) ;
     
-    algorithm = new gGA(problem) ; // Generational GA
-    //algorithm = new ssGA(problem); // Steady-state GA
-    //algorithm = new scGA(problem) ; // Synchronous cGA
-    //algorithm = new acGA(problem) ;   // Asynchronous cGA
-    
+    algorithm = new bpGA(problem) ; // Generational GA
+   
     /* Algorithm parameters*/
     algorithm.setInputParameter("populationSize",100);
-    algorithm.setInputParameter("maxEvaluations", 25000);
+    algorithm.setInputParameter("maxEvaluations", 25000000);
+    algorithm.setInputParameter("execTime", EXEC_TIME);
     /*
     // Mutation and Crossover for Real codification 
     parameters = new HashMap() ;
@@ -82,11 +87,11 @@ public class GA_main {
     // Mutation and Crossover for Binary codification 
     parameters = new HashMap() ;
     parameters.put("probability", 0.9) ;
-    crossover = CrossoverFactory.getCrossoverOperator("SinglePointCrossover", parameters);                   
+    crossover = CrossoverFactory.getCrossoverOperator("OrderOneCrossover", parameters);                   
 
     parameters = new HashMap() ;
-    parameters.put("probability", 1.0/bits) ;
-    mutation = MutationFactory.getMutationOperator("BitFlipMutation", parameters);                    
+    parameters.put("probability", 0.1) ;
+    mutation = MutationFactory.getMutationOperator("RankSwapMutation", parameters);                    
     
     /* Selection Operator */
     parameters = null ;

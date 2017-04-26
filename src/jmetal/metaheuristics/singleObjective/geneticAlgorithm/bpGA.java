@@ -39,7 +39,7 @@ public class bpGA extends Algorithm{
 	    // Read the params
 	    populationSize = ((Integer)this.getInputParameter("populationSize")).intValue();
 	    maxEvaluations = ((Integer)this.getInputParameter("maxEvaluations")).intValue();                
-	   
+	    long execTime = (long)this.getInputParameter("execTime");
 	    // Initialize the variables
 	    population          = new SolutionSet(populationSize) ;   
 	    offspringPopulation = new SolutionSet(populationSize) ;
@@ -50,7 +50,7 @@ public class bpGA extends Algorithm{
 	    mutationOperator  = this.operators_.get("mutation");
 	    crossoverOperator = this.operators_.get("crossover");
 	    selectionOperator = this.operators_.get("selection");  
-
+	    
 	    // Create the initial population
 	    Solution newIndividual;
 	    for (int i = 0; i < populationSize; i++) {
@@ -62,7 +62,8 @@ public class bpGA extends Algorithm{
 	     
 	    // Sort population
 	    population.sort(comparator) ;
-	    while (evaluations < maxEvaluations) {
+	    long init = System.currentTimeMillis();
+	    while (System.currentTimeMillis()-init < execTime) {
 	      if ((evaluations % 10) == 0) {
 	        System.out.println(evaluations + ": " + population.get(0).getObjective(0)) ;
 	      } //
@@ -72,7 +73,7 @@ public class bpGA extends Algorithm{
 	      offspringPopulation.add(new Solution(population.get(1))) ;	
 	        
 	      // Reproductive cycle
-	      for (int i = 0 ; i < (populationSize / 2 - 1) ; i ++) {
+	      for (int i = 0 ; i < populationSize-2 ; i ++) {
 	        // Selection
 	        Solution [] parents = new Solution[2];
 
@@ -80,22 +81,19 @@ public class bpGA extends Algorithm{
 	        parents[1] = (Solution)selectionOperator.execute(population);
 	 
 	        // Crossover
-	        Solution [] offspring = (Solution []) crossoverOperator.execute(parents);                
+	        Solution offspring = (Solution) crossoverOperator.execute(parents);                
 	          
 	        // Mutation
-	        mutationOperator.execute(offspring[0]);
-	        mutationOperator.execute(offspring[1]);
+	        mutationOperator.execute(offspring);
 
 	        // Evaluation of the new individual
-	        problem_.evaluate(offspring[0]);            
-	        problem_.evaluate(offspring[1]);            
+	        problem_.evaluate(offspring);            
 	          
-	        evaluations +=2;
+	        evaluations +=1;
 	    
 	        // Replacement: the two new individuals are inserted in the offspring
 	        //                population
-	        offspringPopulation.add(offspring[0]) ;
-	        offspringPopulation.add(offspring[1]) ;
+	        offspringPopulation.add(offspring) ;
 	      } // for
 	      
 	      // The offspring population becomes the new current population

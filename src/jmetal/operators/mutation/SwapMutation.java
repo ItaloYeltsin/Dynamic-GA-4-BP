@@ -22,7 +22,9 @@
 package jmetal.operators.mutation;
 
 import jmetal.core.Solution;
+import jmetal.core.Variable;
 import jmetal.encodings.solutionType.PermutationSolutionType;
+import jmetal.encodings.solutionType.RankPermutationSolutionType;
 import jmetal.encodings.variable.Permutation;
 import jmetal.util.Configuration;
 import jmetal.util.JMException;
@@ -33,99 +35,118 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * This class implements a swap mutation. The solution type of the solution
- * must be Permutation.
+ * This class implements a swap mutation. The solution type of the solution must
+ * be Permutation.
  */
-public class SwapMutation extends Mutation{
-  /**
-   * Valid solution types to apply this operator 
-   */
-  private static final List VALID_TYPES = Arrays.asList(PermutationSolutionType.class) ;
-  
-  private Double mutationProbability_ = null ;
+public class SwapMutation extends Mutation {
+	/**
+	 * Valid solution types to apply this operator
+	 */
+	private static final List VALID_TYPES = Arrays.asList(PermutationSolutionType.class,
+			RankPermutationSolutionType.class);
 
-  /** 
-   * Constructor
-   */
-  public SwapMutation(HashMap<String, Object> parameters) {    
-  	super(parameters) ;
-  	
-  	if (parameters.get("probability") != null)
-  		mutationProbability_ = (Double) parameters.get("probability") ;  		
-  } // Constructor
+	private Double mutationProbability_ = null;
 
+	/**
+	 * Constructor
+	 */
+	public SwapMutation(HashMap<String, Object> parameters) {
+		super(parameters);
 
-  /**
-   * Constructor
-   */
-  //public SwapMutation(Properties properties) {
-  //  this();
-  //} // Constructor
+		if (parameters.get("probability") != null)
+			mutationProbability_ = (Double) parameters.get("probability");
+	} // Constructor
 
-  /**
-   * Performs the operation
-   * @param probability Mutation probability
-   * @param solution The solution to mutate
-   * @throws JMException 
-   */
-  public void doMutation(double probability, Solution solution) throws JMException {   
-    int permutation[] ;
-    int permutationLength ;
-	    if (solution.getType().getClass() == PermutationSolutionType.class) {
+	/**
+	 * Constructor
+	 */
+	// public SwapMutation(Properties properties) {
+	// this();
+	// } // Constructor
 
-	      permutationLength = ((Permutation)solution.getDecisionVariables()[0]).getLength() ;
-	      permutation = ((Permutation)solution.getDecisionVariables()[0]).vector_ ;
+	/**
+	 * Performs the operation
+	 * 
+	 * @param probability
+	 *            Mutation probability
+	 * @param solution
+	 *            The solution to mutate
+	 * @throws JMException
+	 */
+	public void doMutation(double probability, Solution solution) throws JMException {
+		int permutation[];
+		int permutationLength;
+		if (solution.getType().getClass() == PermutationSolutionType.class) {
 
-	      if (PseudoRandom.randDouble() < probability) {
-	        int pos1 ;
-	        int pos2 ;
+			permutationLength = ((Permutation) solution.getDecisionVariables()[0]).getLength();
+			permutation = ((Permutation) solution.getDecisionVariables()[0]).vector_;
 
-	        pos1 = PseudoRandom.randInt(0,permutationLength-1) ;
-	        pos2 = PseudoRandom.randInt(0,permutationLength-1) ;
+			if (PseudoRandom.randDouble() < probability) {
+				int pos1;
+				int pos2;
 
-	        while (pos1 == pos2) {
-	          if (pos1 == (permutationLength - 1)) 
-	            pos2 = PseudoRandom.randInt(0, permutationLength- 2);
-	          else 
-	            pos2 = PseudoRandom.randInt(pos1, permutationLength- 1);
-	        } // while
-	        // swap
-	        int temp = permutation[pos1];
-	        permutation[pos1] = permutation[pos2];
-	        permutation[pos2] = temp;    
-	      } // if
-	    } // if
-	    else  {
-	      Configuration.logger_.severe("SwapMutation.doMutation: invalid type. " +
-	          ""+ solution.getDecisionVariables()[0].getVariableType());
+				pos1 = PseudoRandom.randInt(0, permutationLength - 1);
+				pos2 = PseudoRandom.randInt(0, permutationLength - 1);
 
-	      Class cls = java.lang.String.class;
-	      String name = cls.getName(); 
-	      throw new JMException("Exception in " + name + ".doMutation()") ;
-	    }
-  } // doMutation
+				while (pos1 == pos2) {
+					if (pos1 == (permutationLength - 1))
+						pos2 = PseudoRandom.randInt(0, permutationLength - 2);
+					else
+						pos2 = PseudoRandom.randInt(pos1, permutationLength - 1);
+				} // while
+					// swap
+				int temp = permutation[pos1];
+				permutation[pos1] = permutation[pos2];
+				permutation[pos2] = temp;
+			} // if
+		} // if
+		else if (solution.getType().getClass() == RankPermutationSolutionType.class) {
+			if (PseudoRandom.randDouble() < probability) {
+				Variable[] vars = solution.getDecisionVariables();
+				int pos1;
+				int pos2;
 
-  /**
-   * Executes the operation
-   * @param object An object containing the solution to mutate
-   * @return an object containing the mutated solution
-   * @throws JMException 
-   */
-  public Object execute(Object object) throws JMException {
-    Solution solution = (Solution)object;
-    
+				do {
+					pos1 = PseudoRandom.randInt(0, vars.length - 1);
+					pos2 = PseudoRandom.randInt(0, vars.length - 1);
+				} while (pos1 == pos2);
+				// swap
+				Variable aux = vars[pos1];
+				vars[pos1] = vars[pos2];
+				vars[pos2] = aux;
+			}
+		} else {
+			Configuration.logger_.severe("SwapMutation.doMutation: invalid type. " + ""
+					+ solution.getDecisionVariables()[0].getVariableType());
+
+			Class cls = java.lang.String.class;
+			String name = cls.getName();
+			throw new JMException("Exception in " + name + ".doMutation()");
+		}
+	} // doMutation
+
+	/**
+	 * Executes the operation
+	 * 
+	 * @param object
+	 *            An object containing the solution to mutate
+	 * @return an object containing the mutated solution
+	 * @throws JMException
+	 */
+	public Object execute(Object object) throws JMException {
+		Solution solution = (Solution) object;
+
 		if (!VALID_TYPES.contains(solution.getType().getClass())) {
-			Configuration.logger_.severe("SwapMutation.execute: the solution " +
-					"is not of the right type. The type should be 'Binary', " +
-					"'BinaryReal' or 'Int', but " + solution.getType() + " is obtained");
+			Configuration.logger_.severe(
+					"SwapMutation.execute: the solution " + "is not of the right type. The type should be 'Binary', "
+							+ "'BinaryReal' or 'Int', but " + solution.getType() + " is obtained");
 
 			Class cls = java.lang.String.class;
 			String name = cls.getName();
 			throw new JMException("Exception in " + name + ".execute()");
-		} // if 
+		} // if
 
-    
-    this.doMutation(mutationProbability_, solution);
-    return solution;
-  } // execute  
+		this.doMutation(mutationProbability_, solution);
+		return solution;
+	} // execute
 } // SwapMutation
