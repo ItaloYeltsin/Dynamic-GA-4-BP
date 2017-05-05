@@ -34,6 +34,12 @@ import jmetal.util.JMException;
 import jmetal.util.dga4nrp.Instance;
 import jmetal.util.dga4nrp.InstanceReader;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -44,9 +50,11 @@ import java.util.HashMap;
  */
 public class GA_main {
 
-	private final static long EXEC_TIME = 15000; //ms
+	private final static long EXEC_TIME = 5000; //ms
+	private final static int MMF = 1;
+	private final static int TR = 2;
 	
-  public static void main(String [] args) throws JMException, ClassNotFoundException {
+  public static void main(String [] args) throws JMException, ClassNotFoundException, IOException {
     Problem   problem   ;         // The problem to solve
     Algorithm algorithm ;         // The algorithm to use
     Operator  crossover ;         // Crossover operator
@@ -59,30 +67,15 @@ public class GA_main {
     InstanceReader ir = new InstanceReader("kate.csv");
 	Instance icc = ir.load();
     problem = new DynBugPrioritization(icc, 20);
+
     
- 
-    //problem = new Sphere("Real", 10) ;
-    //problem = new Easom("Real") ;
-    //problem = new Griewank("Real", 10) ;
-    
-    algorithm = new bpGA(problem) ; // Generational GA
+    algorithm = new bpGA(problem) ; // GA
    
     /* Algorithm parameters*/
     algorithm.setInputParameter("populationSize",100);
     algorithm.setInputParameter("maxEvaluations", 25000000);
     algorithm.setInputParameter("execTime", EXEC_TIME);
-    /*
-    // Mutation and Crossover for Real codification 
-    parameters = new HashMap() ;
-    parameters.put("probability", 0.9) ;
-    parameters.put("distributionIndex", 20.0) ;
-    crossover = CrossoverFactory.getCrossoverOperator("SBXCrossover", parameters);                   
-
-    parameters = new HashMap() ;
-    parameters.put("probability", 1.0/problem.getNumberOfVariables()) ;
-    parameters.put("distributionIndex", 20.0) ;
-    mutation = MutationFactory.getMutationOperator("PolynomialMutation", parameters);                    
-    */
+    
     
     // Mutation and Crossover for Binary codification 
     parameters = new HashMap() ;
@@ -103,15 +96,55 @@ public class GA_main {
     algorithm.addOperator("selection",selection);
  
     /* Execute the Algorithm */
-    long initTime = System.currentTimeMillis();
-    SolutionSet population = algorithm.execute();
-    long estimatedTime = System.currentTimeMillis() - initTime;
-    System.out.println("Total execution time: " + estimatedTime);
 
-    /* Log messages */
-    System.out.println("Objectives values have been writen to file FUN");
-    population.printObjectivesToFile("FUN");
-    System.out.println("Variables values have been writen to file VAR");
-    population.printVariablesToFile("VAR");          
+    String [] fileNames = {
+    		"kate-1.csv", "kate-2.csv", "kate-3.csv",
+    		"kate-4.csv", "kate-5.csv", "kate-6.csv",
+    		"kate-7.csv", "kate-8.csv",
+    		"kate-9.csv", "kate-10.csv"};
+    
+    
+    
+    String [] changeLevel = {"low", "medium", "high"};
+    
+    ArrayList<ArrayList<Instance>> instances = new ArrayList<ArrayList<Instance>>(3);
+    
+    //Load All instances
+    for (int i = 0; i < changeLevel.length; i++) {
+    	ArrayList<Instance> aux = new ArrayList<Instance>();
+    	instances.add(aux);
+    	for (int j = 0; j < fileNames.length; j++) {
+    		aux.add(new InstanceReader(changeLevel[i]+File.separator+fileNames[j]).load());
+    	}
+	}
+    
+    int evaluations = 30;
+    int rankSize = 20;
+    
+    //CANONIC GA
+    	for (int i = 0; i < instances.size(); i++) { //
+    		ArrayList<Instance> aux = instances.get(i);
+    		FileWriter fw = new FileWriter(new File("results"+File.separator+changeLevel[i]+".csv"));
+    		fw.write("MMF;TR"+System.lineSeparator());
+			
+    		for (int j = 0; j < evaluations; j++) { // Evaluations
+				double mMF = 0;
+				double tR = 0;
+				double counter = 1;
+				for (int k = 0; k < aux.size(); k++) { // changes
+					Instance instance = aux.get(k);
+					((bpGA)algorithm).setProblem(new DynBugPrioritization(instance, rankSize));
+					SolutionSet s = algorithm.execute();
+					System.out.println(i+":"+j+":"+k+":"+s.get(0).getObjective(0));
+					mMF += s.get(0).getObjective(MMF);
+					tR += s.get(0).getObjective(TR);
+					counter++;
+				}
+				tR = tR/counter;
+				mMF = mMF/counter;
+				fw.write(mMF+";"+tR+System.lineSeparator());
+			}
+    		fw.close();
+		}
   } //main
 } // GA_main

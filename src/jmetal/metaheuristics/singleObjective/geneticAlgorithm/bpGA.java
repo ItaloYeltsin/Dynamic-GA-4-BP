@@ -13,11 +13,15 @@ import jmetal.util.JMException;
 import jmetal.util.Neighborhood;
 import jmetal.util.comparators.ObjectiveComparator;
 
-public class bpGA extends Algorithm{
+public class bpGA extends Algorithm {
 
 	public bpGA(Problem problem) {
 		super(problem);
-		
+
+	}
+
+	public void setProblem(Problem problem_) {
+		super.problem_ = problem_;
 	}
 
 	@Override
@@ -63,11 +67,13 @@ public class bpGA extends Algorithm{
 	    // Sort population
 	    population.sort(comparator) ;
 	    long init = System.currentTimeMillis();
+	    
+	    double sumBestFitness = -population.get(0).getObjective(0);
+	    int nOfGenerations = 1;
+	    double firstBestFitness = -population.get(0).getObjective(0);
+	    double tR = 0;
 	    while (System.currentTimeMillis()-init < execTime) {
-	      if ((evaluations % 10) == 0) {
-	        System.out.println(evaluations + ": " + population.get(0).getObjective(0)) ;
-	      } //
-
+	    	nOfGenerations++;
 	      // Copy the best two individuals to the offspring population
 	      offspringPopulation.add(new Solution(population.get(0))) ;	
 	      offspringPopulation.add(new Solution(population.get(1))) ;	
@@ -103,15 +109,20 @@ public class bpGA extends Algorithm{
 	      }
 	      offspringPopulation.clear();
 	      population.sort(comparator) ;
+	      sumBestFitness += -population.get(0).getObjective(0);
+	      tR += -population.get(0).getObjective(0) - firstBestFitness;
 	    } // while
 	    
+	    tR = tR/(-population.get(0).getObjective(0) - firstBestFitness);
+	    double average = sumBestFitness/nOfGenerations;
+	    population.get(0).setObjective(1, average); // Stores Best Fitness Average of all the evolutive cycles
+	    population.get(0).setObjective(2, tR);
 	    // Return a population with the best individual
 	    SolutionSet resultPopulation = new SolutionSet(1) ;
 	    resultPopulation.add(population.get(0)) ;
+	   
 	    
-	    System.out.println("Evaluations: " + evaluations ) ;
 	    return resultPopulation ;
-	}
+	} // execute
 
-	
 }

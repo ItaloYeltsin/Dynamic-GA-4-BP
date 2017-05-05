@@ -32,7 +32,7 @@ public class InstanceMutator {
 		ArrayList<Bug> added = (ArrayList<Bug>) bugs.clone();
 		ArrayList<Bug> removed = new ArrayList<Bug>();
 		
-		for (int i = 0; i < nOfInstances; i++) {
+		for (int i = 1; i <= nOfInstances; i++) {
 			HashMap hm = copyMap(prec);
 			execDimenChange(added, removed, hm, (int)(rate*seed.getBugs().size()/2));
 			execNonDimensionalChange(added, removed, (int)(rate*seed.getBugs().size()/2));
@@ -66,18 +66,23 @@ public class InstanceMutator {
 			int nOfWithDrawals;
 			
 			do {
-				nOfInsertions = random.nextInt(removed.size()+1);
+				if(removed.size() > 1) {
+					nOfInsertions = random.nextInt(removed.size());
+				} else {
+					nOfInsertions = 1;
+				}
 				nOfWithDrawals = size - nOfInsertions;				
-			}while(nOfInsertions > size && nOfWithDrawals <= added.size());
+			}while(nOfInsertions > size || nOfInsertions > removed.size() || nOfWithDrawals >= added.size());
 		
 			Collections.shuffle(removed);
 			Collections.shuffle(added);
-			for (int i = 0; i < nOfInsertions; i++) {
+			for (int i = 0; i < nOfInsertions && i < removed.size(); i++) {
+				System.out.println(i);
 				added.add(removed.get(i));
 				removed.remove(i);
 			}
 			
-			for (int i = 0; i < nOfWithDrawals; i++) {
+			for (int i = 0; i < nOfWithDrawals && i < added.size(); i++) {
 				removed.add(added.get(i));
 				added.remove(i);
 			}		
@@ -111,7 +116,7 @@ public class InstanceMutator {
 		Collections.shuffle(added);
 		int attr = random.nextInt(NUMBER_OF_ATTRIBUTS);
 		
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < size && i< added.size(); i++) {
 			Bug bug = added.get(i);
 			
 			if (attr == BUG_PRIORITY) {
