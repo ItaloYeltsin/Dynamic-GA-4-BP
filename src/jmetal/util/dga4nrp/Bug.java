@@ -31,5 +31,8 @@ public class Bug {
 		this.serity = serity;
 	}
 	
-	
+	@Override
+	public boolean equals(Object bug) {
+		return ((Bug)bug).id == this.id;
+	}
 }

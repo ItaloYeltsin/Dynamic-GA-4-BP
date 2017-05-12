@@ -27,6 +27,7 @@ import jmetal.core.Problem;
 import jmetal.core.SolutionSet;
 import jmetal.operators.crossover.CrossoverFactory;
 import jmetal.operators.mutation.MutationFactory;
+import jmetal.operators.populationGenerator.PopGenWithSimplePropag;
 import jmetal.operators.selection.SelectionFactory;
 import jmetal.problems.DynBugPrioritization;
 import jmetal.problems.singleObjective.OneMax;
@@ -78,6 +79,7 @@ public class GA_main {
     
     
     // Mutation and Crossover for Binary codification 
+    
     parameters = new HashMap() ;
     parameters.put("probability", 0.9) ;
     crossover = CrossoverFactory.getCrossoverOperator("OrderOneCrossover", parameters);                   
@@ -88,13 +90,18 @@ public class GA_main {
     
     /* Selection Operator */
     parameters = null ;
+   
     selection = SelectionFactory.getSelectionOperator("BinaryTournament", parameters) ;                            
+    
+    
     
     /* Add the operators to the algorithm*/
     algorithm.addOperator("crossover",crossover);
     algorithm.addOperator("mutation",mutation);
     algorithm.addOperator("selection",selection);
- 
+    parameters = new HashMap();
+    parameters.put("populationSize", 100);
+    algorithm.addOperator("populationGenerator", new PopGenWithSimplePropag(parameters));
     /* Execute the Algorithm */
 
     String [] fileNames = {
@@ -124,7 +131,8 @@ public class GA_main {
     //CANONIC GA
     	for (int i = 0; i < instances.size(); i++) { //
     		ArrayList<Instance> aux = instances.get(i);
-    		FileWriter fw = new FileWriter(new File("results"+File.separator+changeLevel[i]+".csv"));
+    		File f = new File("results"+File.separator+"static_ga"+File.separator+changeLevel[i]+".csv");
+    		FileWriter fw = new FileWriter(f);
     		fw.write("MMF;TR"+System.lineSeparator());
 			
     		for (int j = 0; j < evaluations; j++) { // Evaluations
@@ -135,13 +143,16 @@ public class GA_main {
 					Instance instance = aux.get(k);
 					((bpGA)algorithm).setProblem(new DynBugPrioritization(instance, rankSize));
 					SolutionSet s = algorithm.execute();
-					System.out.println(i+":"+j+":"+k+":"+s.get(0).getObjective(0));
+					
 					mMF += s.get(0).getObjective(MMF);
 					tR += s.get(0).getObjective(TR);
+					
 					counter++;
 				}
+				
 				tR = tR/counter;
 				mMF = mMF/counter;
+				System.out.println(i+":"+j+":"+tR+" "+mMF);
 				fw.write(mMF+";"+tR+System.lineSeparator());
 			}
     		fw.close();

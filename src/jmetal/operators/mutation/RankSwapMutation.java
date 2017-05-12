@@ -133,7 +133,7 @@ public class RankSwapMutation extends Mutation{
 			throw new JMException("Exception in " + name + ".execute()");
 		} // if 
 
-    
+	mutationProbability_ = (Double) parameters_.get("probability") ;  	
     this.doMutation(mutationProbability_, solution);
     return solution;
   } // execute  

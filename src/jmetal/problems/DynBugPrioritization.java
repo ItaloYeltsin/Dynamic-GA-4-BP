@@ -26,7 +26,7 @@ public class DynBugPrioritization extends Problem {
 		this.rankSize = rankSize;
 		
 		numberOfVariables_   = rankSize;
-	    numberOfObjectives_  = 1;
+	    numberOfObjectives_  = 3;
 	    problemName_         = "Bug Prioritization";
 	        
 	    lowerLimit_ = new double[numberOfVariables_];
@@ -39,6 +39,10 @@ public class DynBugPrioritization extends Problem {
 	    
 	    solutionType_ = new RankPermutationSolutionType(this, rankSize);
 		
+	}
+	
+	public ArrayList<Bug> getBugs() {
+		return bugs;
 	}
 	
 	@Override
