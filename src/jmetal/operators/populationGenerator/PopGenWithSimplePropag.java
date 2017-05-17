@@ -9,6 +9,8 @@ import jmetal.core.Problem;
 import jmetal.core.Solution;
 import jmetal.core.SolutionSet;
 import jmetal.core.Variable;
+import jmetal.metaheuristics.singleObjective.geneticAlgorithm.DynamicBPGA;
+import jmetal.problems.DynBugPrioritization;
 import jmetal.util.JMException;
 
 public class PopGenWithSimplePropag extends PopulationGenerator{
@@ -26,12 +28,16 @@ public class PopGenWithSimplePropag extends PopulationGenerator{
 	@Override
 	public Object execute(Object object) throws JMException {
 		HashMap hm = (HashMap)object;
-		Problem problem_ = (Problem)hm.get("problem");
+		DynBugPrioritization problem_ = (DynBugPrioritization)hm.get("problem");
 		PriorityQueue<Integer> indexes = (PriorityQueue<Integer>)hm.get("removedBugsIndexes");
 		SolutionSet prevPopulation = (SolutionSet)hm.get("previousPopulation");
-		if(prevPopulation == null)
-			return (SolutionSet)spg.execute(problem_);
-		
+		HashMap result = new HashMap();
+		if(prevPopulation == null) {
+			result.put("population", spg.execute(problem_));
+			result.put("changeImpact", 0.0);
+			return result;
+		}
+
 		double changeImpact = 0;
 		
 		SolutionSet population = new SolutionSet(populationSize);
@@ -48,7 +54,7 @@ public class PopGenWithSimplePropag extends PopulationGenerator{
 			Variable [] newVars = solution.getDecisionVariables();
 			
 			ArrayList<Integer> suffledIndexes = new ArrayList<Integer>();
-			for (int j = 0; j < newVars.length; j++) {
+			for (int j = 0; j < problem_.getBugs().size(); j++) {
 				suffledIndexes.add(j);
 			}
 			
@@ -59,20 +65,15 @@ public class PopGenWithSimplePropag extends PopulationGenerator{
 			for (int j = 0; j < newVars.length; j++) { // replacement of removed bugs
 				newVars[j] = oldVars[j].deepCopy();
 				
-				if(indexes.contains((int)newVars[j].getValue())) {
+				if(indexes.contains((int)newVars[j].getValue())
+						|| (int)newVars[j].getValue() >= problem_.getBugs().size()) {
 					
 					while(true) {
 						int replacement = suffledIndexes.get(counter++);
 						if(replacement == (int)newVars[j].getValue())
 							break;
-						boolean isInSolution = false;
-						for (int k = 0; k < newVars.length; k++) {
-							if(replacement == (int)newVars[k].getValue() ) {
-								isInSolution = true;
-								break;
-							}
-						} // for k
-
+						boolean isInSolution = isInSolution(replacement, newVars);
+						
 						if(!isInSolution) {
 							newVars[j].setValue(replacement);
 							break;
@@ -80,19 +81,50 @@ public class PopGenWithSimplePropag extends PopulationGenerator{
 					} // while
 					
 				} // if
+				
 			} //for j
 			problem_.evaluate(solution);
-			changeImpact += (solution.getObjective(0) - prevPopulation.get(i).getObjective(0))/prevPopulation.get(i).getObjective(0);
+			changeImpact += 
+					Math.abs(
+							(solution.getObjective(0)
+									- prevPopulation.get(i).
+									getObjective(0))
+							/prevPopulation.get(i).
+							getObjective(0));
+			
 			population.add(solution);
 		} //for i
 		
-		changeImpact = changeImpact/populationSize;
 		
-		HashMap result = new HashMap();
+		
+		changeImpact = changeImpact/populationSize;
+
+		double lowerLimit = (Double)hm.get("propag_Li");
+		double upperLimit = (Double)hm.get("propag_Ls");
+		
+		int numberOfNewSol = populationSize - (int) (populationSize*((upperLimit - lowerLimit)*changeImpact + lowerLimit));
+		
+		for (int j = populationSize-1; j >= populationSize - numberOfNewSol; j--) {
+			try {
+				population.add(j, new Solution(problem_));
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		result.put("population", population);
 		result.put("changeImpact", changeImpact);
 		
 		return result;
+	}
+	
+	public boolean isInSolution(int index, Variable [] vars) throws JMException {
+		for (int k = 0; k < vars.length; k++) {
+			if(index == (int)vars[k].getValue() ) {
+				return  true;
+			}
+		} // for k
+		return false;
 	}
 
 }

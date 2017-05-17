@@ -24,22 +24,15 @@ import jmetal.util.dga4nrp.GaussianGenerator;
 
 public class DynamicBPGA extends Algorithm {
 
-	private HashMap bugsMap;
 	private PriorityQueue<Integer> removedBugsIndex;
 	private ArrayList<Bug> newBugs;
 	private ArrayList<Bug> bugsBeforeTheLastChange;
 	private SolutionSet prevPopulation;
 	
-	public DynamicBPGA(Problem problem, HashMap bugsMap) {
+	public DynamicBPGA(Problem problem) {
 		super(problem);
-		this.bugsMap = bugsMap;
-
 	}
 
-	public HashMap getBugsMap() {
-		return bugsMap;
-	}
-	
 	public void setProblem(Problem problem_) {
 		super.problem_ = problem_;
 	}
@@ -66,21 +59,16 @@ public class DynamicBPGA extends Algorithm {
 	    populationSize = ((Integer)this.getInputParameter("populationSize")).intValue();
 	    maxEvaluations = ((Integer)this.getInputParameter("maxEvaluations")).intValue();                
 	    long execTime = (long)this.getInputParameter("execTime");
-	    double upperLimit = (Double)this.getInputParameter("Ls");
-	    double lowerLimit = (Double)this.getInputParameter("Li");
-	    
-	    if(upperLimit > 1 || upperLimit < 0){
-	    	throw new IllegalArgumentException("UpperLimit must be between 0 and 1");
-	    } else if(lowerLimit > 1 || lowerLimit < 0) {
-	    	throw new IllegalArgumentException("LowerLimit must be between 0 and 1");
-	    } else if(lowerLimit > upperLimit) {
-	    	throw new IllegalArgumentException("UpperLimit must be greater or equal LowerLimit");
-	    }
+	    double mutationUpperLimit = (Double)this.getInputParameter("mutation_Ls"); //Mutation Lower Limit
+	    double mutationLowerLimit = (Double)this.getInputParameter("mutation_Li"); // Mutation Upper Limit
+	    boolean isAGMA = (Boolean)this.getInputParameter("isAGMA");
+	    double propagUpperLimit = (Double)this.getInputParameter("propag_Ls");
+	    double propagLowerLimit = (Double)this.getInputParameter("propag_Li");
+		   
 	    double genDecay = 4;
 	    double decayRate = 0.0002;
 	    double changeImpact;
 	    double mutationProbability = 0.05;
-	    GaussianGenerator gg = new GaussianGenerator(upperLimit, lowerLimit, genDecay, decayRate);
 	    
 	    
 	    // Initialize the variables
@@ -103,13 +91,23 @@ public class DynamicBPGA extends Algorithm {
 	    	parameters.put("removedBugsIndexes", getRemovedBugIndexes());
 	    	parameters.put("problem", problem_);
 	    	parameters.put("previousPopulation", prevPopulation);
-	    	HashMap result = ((HashMap)popGenerator.execute(parameters));
+	    	parameters.put("propag_Ls", propagUpperLimit);
+	    	parameters.put("propag_Li", propagLowerLimit);
+	    	
+	    	HashMap result = (HashMap)popGenerator.execute(parameters);
 	    	population = (SolutionSet)result.get("population");
 	    	changeImpact = (Double)result.get("changeImpact");
+	    	if(isAGMA)
+	    		mutationUpperLimit = changeImpact*mutationUpperLimit;
+	    	System.out.println(changeImpact);
 	    	
 	    }else {
 	    	throw new RuntimeException("No compatible Population Generator found");
 	    }
+	    
+	    GaussianGenerator mutationGG = 
+	    		new GaussianGenerator(mutationUpperLimit, mutationLowerLimit, genDecay, decayRate);
+	    
 	    
 	    // Sort population
 	    population.sort(comparator) ;
@@ -138,7 +136,7 @@ public class DynamicBPGA extends Algorithm {
 	        Solution offspring = (Solution) crossoverOperator.execute(parents);                
 	          
 	        // Mutation
-	        mutationOperator.setParameter("", gg.nextValue());
+	        mutationOperator.setParameter("probability", mutationGG.nextValue());
 	        mutationOperator.execute(offspring);
 
 	        // Evaluation of the new individual
