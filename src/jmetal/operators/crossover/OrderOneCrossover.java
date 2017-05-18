@@ -97,11 +97,12 @@ public class OrderOneCrossover extends Crossover {
     	  }
     	  int position = 0;
     	  for (int i = 0; i < vars.length && position < vars.length; i++) {
-			if(position == interval1)
+			if(position == interval1){
 				position = interval2+1;
+			}
 			boolean isMarked = false;
 			for (int j = 0; j < swathe.size(); j++) {
-				if(parent1.getDecisionVariables()[i].getValue() == swathe.get(j)) {
+				if(parent2.getDecisionVariables()[i].getValue() == swathe.get(j)) {
 					isMarked = true;
 					break;
 				}
@@ -110,7 +111,8 @@ public class OrderOneCrossover extends Crossover {
 			if(isMarked) {
 				continue;
 			} else { // 
-				offSpring[0].getDecisionVariables()[position] = parent1.getDecisionVariables()[i].deepCopy();
+				if(position < vars.length)
+					offSpring[0].getDecisionVariables()[position] = parent2.getDecisionVariables()[i].deepCopy();
 				position++;
 			}
 		}

@@ -57,7 +57,6 @@ public class DynamicBPGA extends Algorithm {
 	    
 	    // Read the params
 	    populationSize = ((Integer)this.getInputParameter("populationSize")).intValue();
-	    maxEvaluations = ((Integer)this.getInputParameter("maxEvaluations")).intValue();                
 	    long execTime = (long)this.getInputParameter("execTime");
 	    double mutationUpperLimit = (Double)this.getInputParameter("mutation_Ls"); //Mutation Lower Limit
 	    double mutationLowerLimit = (Double)this.getInputParameter("mutation_Li"); // Mutation Upper Limit
@@ -99,7 +98,6 @@ public class DynamicBPGA extends Algorithm {
 	    	changeImpact = (Double)result.get("changeImpact");
 	    	if(isAGMA)
 	    		mutationUpperLimit = changeImpact*mutationUpperLimit;
-	    	System.out.println(changeImpact);
 	    	
 	    }else {
 	    	throw new RuntimeException("No compatible Population Generator found");
@@ -114,12 +112,12 @@ public class DynamicBPGA extends Algorithm {
 	    long init = System.currentTimeMillis();
 	    
 	    double sumBestFitness = -population.get(0).getObjective(0);
-	    int nOfGenerations = 1;
+	    int nOfGenerations = 0;
 	    double firstBestFitness = -population.get(0).getObjective(0);
 	    double tR = 0;
 	    
 	    while (System.currentTimeMillis()-init < execTime) {
-	    	nOfGenerations++;
+	      nOfGenerations++;
 	      // Copy the best two individuals to the offspring population
 	      offspringPopulation.add(new Solution(population.get(0))) ;	
 	      offspringPopulation.add(new Solution(population.get(1))) ;	
@@ -138,7 +136,6 @@ public class DynamicBPGA extends Algorithm {
 	        // Mutation
 	        mutationOperator.setParameter("probability", mutationGG.nextValue());
 	        mutationOperator.execute(offspring);
-
 	        // Evaluation of the new individual
 	        problem_.evaluate(offspring);            
 	          
@@ -160,7 +157,7 @@ public class DynamicBPGA extends Algorithm {
 	      tR += -population.get(0).getObjective(0) - firstBestFitness;
 	    } // while
 	    
-	    tR = tR/(-population.get(0).getObjective(0) - firstBestFitness);
+	    tR = tR/((-population.get(0).getObjective(0) - firstBestFitness)*nOfGenerations);
 	    double average = sumBestFitness/nOfGenerations;
 	    population.get(0).setObjective(1, average); // Stores Best Fitness Average of all the evolutive cycles
 	    population.get(0).setObjective(2, tR);

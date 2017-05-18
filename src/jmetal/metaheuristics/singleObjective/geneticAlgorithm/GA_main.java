@@ -30,7 +30,6 @@ import jmetal.operators.mutation.MutationFactory;
 import jmetal.operators.populationGenerator.PopGenWithSimplePropag;
 import jmetal.operators.selection.SelectionFactory;
 import jmetal.problems.DynBugPrioritization;
-import jmetal.problems.singleObjective.OneMax;
 import jmetal.util.JMException;
 import jmetal.util.dga4nrp.Instance;
 import jmetal.util.dga4nrp.InstanceReader;
@@ -94,14 +93,14 @@ public class GA_main {
     	}
 	}
     
-    int evaluations = 30;
+    int evaluations = 1;
     int rankSize = 20;
     
     // GAHP Parameters
     HashMap gAHParams = new HashMap();
-    double [] lowerMutLimitRates = {0.1, 0.1, 0.05, 0.05};
+    double [] lowerMutLimitRates = {0.01, 0.01, 0.05, 0.1, 0.1};
     gAHParams.put("mutation_Li", lowerMutLimitRates); // Mutation Li rates
-    double [] upperMutLimitRates = {0.5, 0.1, 0.1, 0.3};
+    double [] upperMutLimitRates = {0.05, 0.1, 0.1, 0.3, 0.5};
     gAHParams.put("mutation_Ls", upperMutLimitRates);
     double [] lowerPropagLimitRates = {1.0};
     double [] upperPropagLimitRates = {1.0};
@@ -113,9 +112,9 @@ public class GA_main {
     
     // AGMA Parameters
     HashMap aGMAParams = new HashMap();
-    double [] lowerMutLimitRates2 = {0.1, 0.1, 0.05, 0.05};
+    double [] lowerMutLimitRates2 = {0.01, 0.01, 0.05, 0.1, 0.1};
     aGMAParams.put("mutation_Li", lowerMutLimitRates2); // Mutation Li rates
-    double [] upperMutLimitRates2 = {0.5, 0.1, 0.1, 0.3};
+    double [] upperMutLimitRates2 = {0.05, 0.1, 0.1, 0.3, 0.5};
     aGMAParams.put("mutation_Ls", upperMutLimitRates2);
     double [] lowerPropagLimitRates2 = {1.0};
     double [] upperPropagLimitRates2 = {1.0};
@@ -127,10 +126,10 @@ public class GA_main {
     
     // AGPS Parameters
     HashMap aGPSParams = new HashMap();
-    double [] lowerMutLimitRates3 = {0.1};
-    aGPSParams.put("mutation_Li", lowerMutLimitRates2); // Mutation Li rates
-    double [] upperMutLimitRates3 = {0.1};
-    aGPSParams.put("mutation_Ls", upperMutLimitRates2);
+    double [] lowerMutLimitRates3 = {0.05};
+    aGPSParams.put("mutation_Li", lowerMutLimitRates3); // Mutation Li rates
+    double [] upperMutLimitRates3 = {0.05};
+    aGPSParams.put("mutation_Ls", upperMutLimitRates3);
     double [] lowerPropagLimitRates3 = {0.1, 0.3, 0.6, 0.9};
     double [] upperPropagLimitRates3 = {0.1, 0.3, 0.6, 0.9};
     name = "AGPS";
@@ -139,12 +138,12 @@ public class GA_main {
     aGPSParams.put("isAGMA", false);
     aGPSParams.put("name", name);
     
-    // AGPS Parameters
+    // AGPA Parameters
     HashMap aGPAParams = new HashMap();
-    double [] lowerMutLimitRates4 = {0.1};
-    aGPAParams.put("mutation_Li", lowerMutLimitRates2); // Mutation Li rates
-    double [] upperMutLimitRates4 = {0.1};
-    aGPAParams.put("mutation_Ls", upperMutLimitRates2);
+    double [] lowerMutLimitRates4 = {0.05};
+    aGPAParams.put("mutation_Li", lowerMutLimitRates4); // Mutation Li rates
+    double [] upperMutLimitRates4 = {0.05};
+    aGPAParams.put("mutation_Ls", upperMutLimitRates4);
     double [] lowerPropagLimitRates4 = {0.1, 0.1, 0.1};
     double [] upperPropagLimitRates4 = {0.3, 0.9, 1.0};
     name = "AGPA";
@@ -155,10 +154,10 @@ public class GA_main {
     
     // Static AG Parameters
     HashMap staticGAParams = new HashMap();
-    double [] lowerMutLimitRates5 = {0.1};
-    staticGAParams.put("mutation_Li", lowerMutLimitRates2); // Mutation Li rates
-    double [] upperMutLimitRates5 = {0.1};
-    staticGAParams.put("mutation_Ls", upperMutLimitRates2);
+    double [] lowerMutLimitRates5 = {0.05};
+    staticGAParams.put("mutation_Li", lowerMutLimitRates5); // Mutation Li rates
+    double [] upperMutLimitRates5 = {0.05};
+    staticGAParams.put("mutation_Ls", upperMutLimitRates5);
     double [] lowerPropagLimitRates5 = {0.0};
     double [] upperPropagLimitRates5 = {0.0};
     name = "static_ga";
@@ -182,6 +181,7 @@ public class GA_main {
     		double [] propag_Ls = (double [])params.get("propag_Ls");
     		boolean isAGMA = (boolean)params.get("isAGMA");
     		String name1 = (String)params.get("name");
+    		
      		for (int l = 0; l < propag_Ls.length; l++) {
 				for (int m = 0; m < mutation_Ls.length; m++) {
 					for (int i = 0; i < instances.size(); i++) { //
@@ -191,17 +191,17 @@ public class GA_main {
 		        		dir.mkdirs();
 		        		File f = new File("results"+File.separator+name1
 		        				+File.separator+changeLevel[i]+
-		        				"_"+mutation_Li[m]+"_"+mutation_Ls[m]+
-		        				propag_Li[l]+"_"+propag_Ls[l]+".csv");
+		        				"_"+propag_Li[l]+"-"+propag_Ls[l]+
+		        				"_"+mutation_Li[m]+"-"+mutation_Ls[m]+".csv");
 		        		FileWriter fw = new FileWriter(f);
 		        		fw.write("MMF;TR"+System.lineSeparator());
 		    			
 		        		for (int j = 0; j < evaluations; j++) { // Evaluations
 		    				double mMF = 0;
 		    				double tR = 0;
-		    				double counter = 1;
+		    				double counter = 0;
 		    				algorithm = configGA(POPULATION_SIZE, mutation_Li[m],
-		    						mutation_Ls[m], propag_Li[l], propag_Ls[l],
+		    						mutation_Ls[m], propag_Li[l], propag_Ls[l], isAGMA,
 		    						new DynBugPrioritization(aux.get(0), rankSize));
 		    				
 		    				for (int k = 0; k < aux.size(); k++) { // changes
@@ -217,7 +217,7 @@ public class GA_main {
 		    				
 		    				tR = tR/counter;
 		    				mMF = mMF/counter;
-		    				System.out.println(i+":"+j+":"+tR+" "+mMF);
+		    				System.out.println(name1+" "+changeLevel[i]+" exec["+j+"]:"+" "+mMF+" "+tR);
 		    				fw.write(mMF+";"+tR+System.lineSeparator());
 		    			}
 		        		fw.close();
@@ -228,7 +228,7 @@ public class GA_main {
   } //main
   
   public static Algorithm configGA(int popSize, double mutationLowerLimit, double mutationUpperLimit,
-		  double propagLowerLimit, double propagUpperLimit, Problem problem) throws JMException {
+		  double propagLowerLimit, double propagUpperLimit, boolean isAGMA, Problem problem) throws JMException {
 	  	
 	  	Algorithm algorithm = new DynamicBPGA(problem) ; // GA
 	    Operator  crossover ;         // Crossover operator
@@ -242,8 +242,7 @@ public class GA_main {
 	    algorithm.setInputParameter("mutation_Li", mutationLowerLimit);
 	    algorithm.setInputParameter("propag_Ls", propagUpperLimit);
 	    algorithm.setInputParameter("propag_Li", propagLowerLimit);
-	    
-	    // Mutation and Crossover for Binary codification 
+	    algorithm.setInputParameter("isAGMA", isAGMA);	    // Mutation and Crossover for Binary codification 
 	    
 	    HashMap parameters = new HashMap() ;
 	    parameters.put("probability", 0.9) ;

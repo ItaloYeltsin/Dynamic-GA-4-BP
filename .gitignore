@@ -1,5 +1,7 @@
 bin/**/*
 bin/**
+results/**/*
+results/**
 FUN
 VAR
 *~
